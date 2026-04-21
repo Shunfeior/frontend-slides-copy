@@ -1,0 +1,14 @@
+# Temporary preview files
+*-preview.html
+*-skeleton.html
+skeleton-*.html
+version-*.html
+style-*.html
+slide*.html
+miaochuang-pitch.html
+
+# Empty output folders
+output/*
+previews/*
+templates/skeletons/*
+!templates/skeletons/.gitkeep

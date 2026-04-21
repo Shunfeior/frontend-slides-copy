@@ -1,0 +1,13 @@
+{
+  "name": "frontend-slides",
+  "version": "1.0.0",
+  "description": "零依赖 HTML 演示文稿生成器，包含 12 个精选视觉主题、PPT 转换和反 AI 敷衍设计理念。",
+  "author": {
+    "name": "zarazhangrui",
+    "url": "https://github.com/zarazhangrui"
+  },
+  "homepage": "https://github.com/zarazhangrui/frontend-slides",
+  "repository": "https://github.com/zarazhangrui/frontend-slides",
+  "license": "MIT",
+  "keywords": ["演示文稿", "幻灯片", "html", "设计", "powerpoint", "动画"]
+}
