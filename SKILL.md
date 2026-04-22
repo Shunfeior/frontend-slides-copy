@@ -86,69 +86,6 @@ AI 推断完整幻灯片结构，展示确认：
 
 ---
 
-### 阶段 1.6：参考图输入（可选）
-
-跳过预设布局，通过参考图生成自定义 Skeleton。
-
-#### Step 1：触发
-
-大纲确认后询问：
-
-```
-预设布局类型：标题页 / 内容页 / 功能网格 / 引言页 / 代码页 / 图片页
-
-如果预设都不满足需求，可以上传参考图生成自定义 Skeleton。
-
-选项：
-A. 继续使用预设布局 → 进入阶段 2
-B. 上传参考图 → 执行 Step 2
-```
-
-#### Step 2：接收参考图
-
-支持：拖入图片 / 本地路径 / URL
-
-#### Step 3：图像分析
-
-使用 `mcp__MiniMax__understand_image` 分析：
-
-```
-分析这张 UI 设计截图的布局结构：
-1. 整体布局：几栏？是否有侧边栏？
-2. 内容区块：有哪些区块？
-3. 各区块的位置和比例
-4. 视觉层次
-5. 设计模式
-
-输出：结构化的布局描述
-```
-
-失败时告知原因并引导重新上传。
-
-#### Step 4：生成 Skeleton
-
-- 沿用阶段 2 已选风格的颜色字体基调
-- 使用灰色占位块：`skeleton-img`、`skeleton-line`、`skeleton-card`
-- 每个 `.slide` 保持 `height: 100vh; overflow: hidden;`
-
-保存到 `previews/{name}-skeleton.html`，打开预览。
-
-#### Step 5：Skeleton 调整
-
-用户描述调整内容 → AI 修改 → 重新展示 → 重复直到满意
-
-#### Step 6：Pencil 协同（可选）
-
-已安装 Pencil Desktop/Extension 时询问：
-
-```
-需要通过 Pencil 可视化编辑吗？
-- 是 → 导入 .pen → 用户编辑 → AI 同步结果
-- 否 → 跳过
-```
-
----
-
 ### 阶段 2：风格发现
 
 #### Step 1：选择路径
@@ -205,7 +142,7 @@ Style A: [名称] / Style B: [名称] / Style C: [名称] / 混合元素
 
 ### 阶段 3：分步生成
 
-生成前阅读支撑文件：`html-template.md`、`viewport-base.css`、`animation-patterns.md`、`skeleton-guide.md`（仅参考图模式）
+生成前阅读支撑文件：`html-template.md`、`viewport-base.css`、`animation-patterns.md`、`skeleton-guide.md`
 
 #### Step A+B：文案 + 布局确认
 
@@ -273,9 +210,56 @@ Style A: [名称] / Style B: [名称] / Style C: [名称] / 混合元素
 - 布局类型（指定页码和新的布局）
 - 增/删幻灯片
 
-确认无误后进入 Step C。
+确认后，询问：
 
-#### Step C：填充 + 应用风格
+```
+布局确认完毕。
+
+如果预设布局都不满足需求，可以上传参考图，
+AI 会根据参考图识别并生成自定义布局。
+
+选项：
+A. 继续使用预设布局 → 进入 Step 2
+B. 上传参考图 → 执行参考图流程
+```
+
+---
+
+#### Step 2：参考图输入（可选）
+
+跳过预设布局，通过参考图生成自定义 Skeleton。
+
+**接收参考图**：支持拖入图片 / 本地路径 / URL
+
+**图像分析**：使用 `mcp__MiniMax__understand_image` 分析：
+
+```
+分析这张 UI 设计截图的布局结构：
+1. 整体布局：几栏？是否有侧边栏？
+2. 内容区块：有哪些区块？
+3. 各区块的位置和比例
+4. 视觉层次
+5. 设计模式
+
+输出：结构化的布局描述
+```
+
+失败时告知原因并引导重新上传。
+
+**生成 Skeleton**：
+- 沿用阶段 2 已选风格的颜色字体基调
+- 使用灰色占位块：`skeleton-img`、`skeleton-line`、`skeleton-card`
+- 每个 `.slide` 保持 `height: 100vh; overflow: hidden;`
+
+保存到 `previews/{name}-skeleton.html`，打开预览。
+
+**Skeleton 调整**：用户描述调整内容 → AI 修改 → 重新展示 → 重复直到满意
+
+**Pencil 协同（可选）**：已安装 Pencil Desktop/Extension 时询问是否需要可视化编辑。
+
+---
+
+#### Step 3：填充 + 应用风格
 
 **实时预览**：完成一张幻灯片后打开预览，输出进度。
 
@@ -289,7 +273,7 @@ Style A: [名称] / Style B: [名称] / Style C: [名称] / 混合元素
 对结果满意吗？
 A. 重新生成第X页
 B. 调整风格
-C. 调整文案/布局 → 返回 Step A+B
+C. 调整文案/布局 → 返回 Step 1
 D. 满意，交付
 ```
 
