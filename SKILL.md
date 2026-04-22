@@ -144,7 +144,7 @@ Style A: [名称] / Style B: [名称] / Style C: [名称] / 混合元素
 
 生成前阅读支撑文件：`html-template.md`、`viewport-base.css`、`animation-patterns.md`、`skeleton-guide.md`
 
-#### Step A+B：文案 + 布局确认
+#### Step 1：文案 + 布局确认
 
 **6 种布局类型（详细视觉预览见 html-template.md）：**
 
@@ -221,9 +221,6 @@ AI 会根据参考图识别并生成自定义布局。
 选项：
 A. 继续使用预设布局 → 进入 Step 2
 B. 上传参考图 → 执行参考图流程
-```
-
----
 
 #### Step 2：参考图输入（可选）
 
