@@ -74,18 +74,10 @@
       }
 
       /* 子元素交错显示以实现顺序出现 */
-      .reveal:nth-child(1) {
-        transition-delay: 0.1s;
-      }
-      .reveal:nth-child(2) {
-        transition-delay: 0.2s;
-      }
-      .reveal:nth-child(3) {
-        transition-delay: 0.3s;
-      }
-      .reveal:nth-child(4) {
-        transition-delay: 0.4s;
-      }
+      .reveal:nth-child(1) { transition-delay: 0.1s; }
+      .reveal:nth-child(2) { transition-delay: 0.2s; }
+      .reveal:nth-child(3) { transition-delay: 0.3s; }
+      .reveal:nth-child(4) { transition-delay: 0.4s; }
 
       /* ... 预设特定样式 ... */
     </style>
@@ -95,7 +87,7 @@
     <div class="progress-bar"></div>
 
     <!-- 可选：导航点 -->
-    <nav class="nav-dots"><!-- 由 JS 生成 --></nav>
+    <nav class="nav-dots"></nav>
 
     <!-- 幻灯片 -->
     <section class="slide title-slide">
@@ -120,35 +112,157 @@
         constructor() {
           this.slides = document.querySelectorAll(".slide");
           this.currentSlide = 0;
+          this.totalSlides = this.slides.length;
+          this.navDotsContainer = document.querySelector(".nav-dots");
+          this.progressBar = document.querySelector(".progress-bar");
+          this.init();
+        }
+
+        init() {
           this.setupIntersectionObserver();
           this.setupKeyboardNav();
           this.setupTouchNav();
           this.setupProgressBar();
           this.setupNavDots();
+          this.goToSlide(0);
         }
 
         setupIntersectionObserver() {
-          // 当幻灯片进入视口时添加 .visible 类
-          // 高效触发 CSS 动画
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+              }
+            });
+          }, { threshold: 0.5 });
+
+          this.slides.forEach(slide => observer.observe(slide));
         }
 
         setupKeyboardNav() {
-          // 方向键、空格键、Page Up/Down
+          document.addEventListener("keydown", (e) => {
+            switch (e.key) {
+              case "ArrowRight":
+              case "ArrowDown":
+              case "PageDown":
+              case " ":
+                e.preventDefault();
+                this.nextSlide();
+                break;
+              case "ArrowLeft":
+              case "ArrowUp":
+              case "PageUp":
+                e.preventDefault();
+                this.prevSlide();
+                break;
+              case "Home":
+                e.preventDefault();
+                this.goToSlide(0);
+                break;
+              case "End":
+                e.preventDefault();
+                this.goToSlide(this.totalSlides - 1);
+                break;
+            }
+          });
         }
 
         setupTouchNav() {
-          // 移动端触摸/滑动支持
+          let startY = 0;
+          document.addEventListener("touchstart", (e) => {
+            startY = e.touches[0].clientY;
+          }, { passive: true });
+
+          document.addEventListener("touchend", (e) => {
+            const deltaY = startY - e.changedTouches[0].clientY;
+            if (Math.abs(deltaY) > 50) {
+              if (deltaY > 0) this.nextSlide();
+              else this.prevSlide();
+            }
+          }, { passive: true });
         }
 
         setupProgressBar() {
-          // 滚动时更新进度条
+          if (!this.progressBar) return;
+          window.addEventListener("scroll", () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            this.progressBar.style.width = progress + "%";
+          });
         }
 
         setupNavDots() {
-          // 重要：生成前始终清空 — 如果在渲染点时捕获了 outerHTML，
-          // 重新打开文件会在现有点之上追加一组重复的点。
+          if (!this.navDotsContainer) return;
+          // 重要：生成前始终清空
           this.navDotsContainer.innerHTML = "";
-          // 生成和管理导航点
+          this.navDotsContainer.style.cssText = `
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.25rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 100;
+          `;
+
+          this.slides.forEach((_, i) => {
+            const dot = document.createElement("button");
+            dot.style.cssText = `
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              border: none;
+              background: rgba(255,255,255,0.3);
+              cursor: pointer;
+              transition: all 0.3s;
+              padding: 0;
+            `;
+            dot.addEventListener("click", () => this.goToSlide(i));
+            dot.title = `幻灯片 ${i + 1}`;
+            this.navDotsContainer.appendChild(dot);
+          });
+
+          this.updateNavDots();
+        }
+
+        updateNavDots() {
+          if (!this.navDotsContainer) return;
+          const dots = this.navDotsContainer.querySelectorAll("button");
+          dots.forEach((dot, i) => {
+            dot.style.background = i === this.currentSlide
+              ? "var(--accent, #00ffcc)"
+              : "rgba(255,255,255,0.3)";
+            dot.style.transform = i === this.currentSlide
+              ? "scale(1.3)"
+              : "scale(1)";
+          });
+        }
+
+        goToSlide(index) {
+          this.currentSlide = Math.max(0, Math.min(index, this.totalSlides - 1));
+          this.slides[this.currentSlide].scrollIntoView({ behavior: "smooth" });
+          this.updateNavDots();
+          this.updateProgressBar();
+        }
+
+        nextSlide() {
+          if (this.currentSlide < this.totalSlides - 1) {
+            this.goToSlide(this.currentSlide + 1);
+          }
+        }
+
+        prevSlide() {
+          if (this.currentSlide > 0) {
+            this.goToSlide(this.currentSlide - 1);
+          }
+        }
+
+        updateProgressBar() {
+          if (!this.progressBar) return;
+          const progress = ((this.currentSlide + 1) / this.totalSlides) * 100;
+          this.progressBar.style.width = progress + "%";
         }
       }
 
@@ -163,11 +277,11 @@
 每个演示文稿必须包含：
 
 1. **SlidePresentation 类** — 主控制器，具有：
-   - 键盘导航（方向键、空格、Page Up/Down）
+   - 键盘导航（方向键、空格、Page Up/Down、Home、End）
    - 触摸/滑动支持
    - 鼠标滚轮导航
    - 进度条更新
-   - 导航点
+   - 右侧圆点导航
 
 2. **Intersection Observer** — 用于滚动触发动画：
    - 当幻灯片进入视口时添加 `.visible` 类
@@ -181,7 +295,7 @@
    - 磁性按钮
    - 计数器动画
 
-4. **内嵌编辑**（仅在阶段 1 用户选择启用时 — 如果用户选择"否"则完全跳过）：
+4. **内嵌编辑**（仅在阶段 1 用户选择启用时）：
    - 编辑切换按钮（默认隐藏，通过悬停热区或 `E` 键显示）
    - 自动保存到 localStorage
    - 导出/保存文件功能
@@ -291,31 +405,262 @@ exportFile() {
     document.body.classList.remove('edit-active');
 
     // 同时剥离切换按钮和横幅的 UI 类
-    const editToggle = document.getElementById('editToggle');
-    const editBanner = document.querySelector('.edit-banner');
-    editToggle?.classList.remove('active', 'show');
-    editBanner?.classList.remove('active', 'show');
+    const editToggle = document.getElementById("editToggle");
+    const editBanner = document.querySelector(".edit-banner");
+    editToggle?.classList.remove("active", "show");
+    editBanner?.classList.remove("active", "show");
 
-    const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
 
     // 恢复编辑状态，以便用户可以继续编辑
-    document.body.classList.add('edit-active');
-    editableEls.forEach(el => el.setAttribute('contenteditable', 'true'));
-    editToggle?.classList.add('active');
-    editBanner?.classList.add('active');
+    document.body.classList.add("edit-active");
+    editableEls.forEach(el => el.setAttribute("contenteditable", "true"));
+    editToggle?.classList.add("active");
+    editBanner?.classList.add("active");
 
-    const blob = new Blob([html], { type: 'text/html' });
-    const a = document.createElement('a');
+    const blob = new Blob([html], { type: "text/html" });
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = 'presentation.html';
+    a.download = "presentation.html";
     a.click();
     URL.revokeObjectURL(a.href);
 }
 ```
 
+## Skeleton 可视化编辑器（替代 Pencil）
+
+当用户选择 Step C 参考图输入时，生成的内置可视化编辑器允许直接在浏览器中拖拽调整元素位置，无需安装任何外部工具。
+
+### HTML 结构
+
+```html
+<!-- 编辑工具栏 -->
+<div class="skeleton-editor-toolbar">
+  <button class="tool-btn active" data-tool="select">选择</button>
+  <button class="tool-btn" data-tool="move">移动</button>
+  <button class="tool-btn" data-tool="resize">调整大小</button>
+  <span class="toolbar-divider"></span>
+  <button class="tool-btn" id="skeletonSaveBtn">保存</button>
+  <button class="tool-btn" id="skeletonResetBtn">重置</button>
+</div>
+
+<!-- 可拖拽元素（每张幻灯片内） -->
+<div class="skeleton-slide" data-slide="1">
+  <div class="skeleton-el selected" data-el="header" tabindex="0">
+    <div class="skeleton-line" data-width="60%"></div>
+    <div class="resize-handle"></div>
+  </div>
+  <div class="skeleton-el" data-el="card1" tabindex="0">
+    <div class="skeleton-card" data-width="200px" data-height="150px"></div>
+    <div class="resize-handle"></div>
+  </div>
+</div>
+```
+
+### 编辑器 CSS
+
+```css
+.skeleton-editor-toolbar {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0,0,0,0.8);
+  border-radius: 8px;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+}
+.tool-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+.tool-btn.active { background: var(--accent, #00ffcc); color: #000; }
+.toolbar-divider { width: 1px; background: rgba(255,255,255,0.2); margin: 0 0.25rem; }
+.skeleton-el {
+  position: absolute;
+  cursor: move;
+  outline: 2px dashed transparent;
+  transition: outline-color 0.2s;
+}
+.skeleton-el:hover { outline-color: rgba(0,255,204,0.5); }
+.skeleton-el.selected { outline-color: var(--accent, #00ffcc); }
+.resize-handle {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent, #00ffcc);
+  border-radius: 2px;
+  cursor: se-resize;
+  display: none;
+}
+.skeleton-el.selected .resize-handle { display: block; }
+```
+
+### 编辑器 JS
+
+```javascript
+class SkeletonEditor {
+  constructor() {
+    this.currentTool = "select";
+    this.selectedEl = null;
+    this.isDragging = false;
+    this.isResizing = false;
+    this.startX = 0; this.startY = 0;
+    this.elX = 0; this.elY = 0;
+    this.elW = 0; this.elH = 0;
+
+    this.toolbar = document.querySelector(".skeleton-editor-toolbar");
+    this.setupToolbar();
+    this.setupElements();
+    this.setupKeyboard();
+  }
+
+  setupToolbar() {
+    this.toolbar.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.currentTool = btn.dataset.tool;
+        this.toolbar.querySelectorAll(".tool-btn[data-tool]").forEach(b =>
+          b.classList.toggle("active", b === btn));
+      });
+    });
+
+    document.getElementById("skeletonSaveBtn").addEventListener("click", () => this.save());
+    document.getElementById("skeletonResetBtn").addEventListener("click", () => this.reset());
+  }
+
+  setupElements() {
+    document.querySelectorAll(".skeleton-el").forEach(el => {
+      el.setAttribute("tabindex", "0");
+
+      el.addEventListener("mousedown", (e) => {
+        if (e.target.classList.contains("resize-handle")) {
+          this.startResize(e, el);
+        } else {
+          this.startDrag(e, el);
+        }
+      });
+
+      el.addEventListener("click", () => this.selectEl(el));
+    });
+
+    document.addEventListener("mousedown", (e) => {
+      if (!e.target.closest(".skeleton-el")) {
+        this.deselectAll();
+      }
+    });
+  }
+
+  startDrag(e, el) {
+    this.isDragging = true;
+    this.selectedEl = el;
+    this.startX = e.clientX;
+    this.startY = e.clientY;
+    const rect = el.getBoundingClientRect();
+    this.elX = rect.left;
+    this.elY = rect.top;
+    this.selectEl(el);
+  }
+
+  startResize(e, el) {
+    this.isResizing = true;
+    this.selectedEl = el;
+    const rect = el.getBoundingClientRect();
+    this.elW = rect.width;
+    this.elH = rect.height;
+    this.startX = e.clientX;
+    this.startY = e.clientY;
+  }
+
+  selectEl(el) {
+    this.deselectAll();
+    el.classList.add("selected");
+    this.selectedEl = el;
+  }
+
+  deselectAll() {
+    document.querySelectorAll(".skeleton-el.selected").forEach(e =>
+      e.classList.remove("selected"));
+    this.selectedEl = null;
+  }
+
+  setupKeyboard() {
+    document.addEventListener("keydown", (e) => {
+      if (!this.selectedEl) return;
+      const step = e.shiftKey ? 10 : 1;
+      switch (e.key) {
+        case "ArrowLeft": e.preventDefault(); this.selectedEl.style.left = (parseInt(this.selectedEl.style.left) || 0) - step + "px"; break;
+        case "ArrowRight": e.preventDefault(); this.selectedEl.style.left = (parseInt(this.selectedEl.style.left) || 0) + step + "px"; break;
+        case "ArrowUp": e.preventDefault(); this.selectedEl.style.top = (parseInt(this.selectedEl.style.top) || 0) - step + "px"; break;
+        case "ArrowDown": e.preventDefault(); this.selectedEl.style.top = (parseInt(this.selectedEl.style.top) || 0) + step + "px"; break;
+        case "Delete": case "Backspace": this.selectedEl.remove(); break;
+      }
+    });
+  }
+
+  save() {
+    const data = {};
+    document.querySelectorAll(".skeleton-el").forEach(el => {
+      const key = el.dataset.el;
+      const rect = el.getBoundingClientRect();
+      const slide = el.closest(".skeleton-slide");
+      const slideRect = slide.getBoundingClientRect();
+      data[key] = {
+        top: rect.top - slideRect.top,
+        left: rect.left - slideRect.left,
+        width: rect.width,
+        height: rect.height
+      };
+    });
+    localStorage.setItem("skeleton-editor-data", JSON.stringify(data));
+    alert("已保存到 localStorage");
+  }
+
+  reset() {
+    localStorage.removeItem("skeleton-editor-data");
+    location.reload();
+  }
+
+  applySavedData() {
+    const saved = localStorage.getItem("skeleton-editor-data");
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([key, val]) => {
+      const el = document.querySelector(`[data-el="${key}"]`);
+      if (el) {
+        el.style.position = "absolute";
+        el.style.top = val.top + "px";
+        el.style.left = val.left + "px";
+        if (val.width) el.style.width = val.width + "px";
+        if (val.height) el.style.height = val.height + "px";
+      }
+    });
+  }
+}
+```
+
+在 `new SlidePresentation()` 之后添加：
+
+```javascript
+// 仅在 skeleton 编辑模式下初始化
+if (document.querySelector(".skeleton-editor-toolbar")) {
+  const editor = new SkeletonEditor();
+  editor.applySavedData();
+}
+```
+
 ## 图片管道（无图片则跳过）
 
-如果用户在阶段 1 选择"无图片"，完全跳过此部分。如果提供了图片，在生成 HTML 前处理它们。
+如果用户在阶段 1 选择"无图片"，完全跳过此部分。
 
 **依赖：** `pip install Pillow`
 
@@ -353,7 +698,7 @@ def resize_max(input_path, output_path, max_dim=1200):
 
 ### 图片放置
 
-**使用直接文件路径**（不是 base64）— 演示文稿在本地查看：
+**使用直接文件路径**（不是 base64）：
 
 ```html
 <img src="assets/logo_round.png" alt="Logo" class="slide-image logo" />
@@ -361,7 +706,7 @@ def resize_max(input_path, output_path, max_dim=1200):
   src="assets/screenshot.png"
   alt="截图"
   class="slide-image screenshot"
-/>
+/ />
 ```
 
 ```css
@@ -379,39 +724,6 @@ def resize_max(input_path, output_path, max_dim=1200):
 .slide-image.logo {
   max-height: min(30vh, 200px);
 }
-```
-
-**使边框/阴影颜色适应所选风格的强调色。** 绝不在多张幻灯片上重复使用同一张图片（标题 + 结尾幻灯片上的 logo 除外）。
-
-**放置模式：** Logo 居中于标题幻灯片。截图位于两栏布局中配文字。全出血图片作为幻灯片背景配文字叠加（谨慎使用）。
-
----
-
-## 代码质量
-
-**注释：** 每个部分都需要清晰的注释，解释它的作用以及如何修改。
-
-**可访问性：**
-
-- 语义 HTML（`<section>`、`<nav>`、`<main>`）
-- 键盘导航完全可用
-- 需要处添加 ARIA 标签
-- `prefers-reduced-motion` 支持（包含在 viewport-base.css 中）
-
-## 文件结构
-
-单个演示文稿：
-
-```
-presentation.html    # 自包含，所有 CSS/JS 内联
-assets/              # 仅图片，如果有的话
-```
-
-一个项目中的多个演示文稿：
-
-```
-[name].html
-[name]-assets/
 ```
 
 ---
