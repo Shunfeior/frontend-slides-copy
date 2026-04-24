@@ -150,16 +150,25 @@ previews/{name}-preview-c.html
 
 生成前阅读支撑文件：`html-template.md`、`viewport-base.css`、`animation-patterns.md`、`skeleton-guide.md`（仅参考图模式）
 
-#### Step A：生成文字内容
+#### Step 1：文案 + 布局确认
 
-逐张展示文字内容摘要（不展示代码）：
+逐张展示，每张包含**布局示意图 + 文案内容**：
 
 ```
 [ Slide 1/6 · 标题页 ]
+┌─────────────────┐
+│      标题        │
+│   副标题/标语    │
+└─────────────────┘
 标题：Layout Lab
 副标题：智能排版设计辅助工具
 
 [ Slide 2/6 · 内容页 ]
+┌─────────────────┐
+│      标题        │
+│   ● ● ● ● ●     │
+│   ● ● ● ● ●     │
+└─────────────────┘
 标题：痛点分析
 要点：
 • 排版依赖个人感觉
@@ -169,40 +178,47 @@ previews/{name}-preview-c.html
 
 用户可标记需要修改的页面。
 
-#### Step B：选择布局类型
+布局示意（详细视觉预览见 html-template.md）：
 
-**6 种布局类型（详细视觉预览见 html-template.md）：**
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│      标题        │     │      标题        │     │                 │
+│                 │     │   ● ● ● ● ●     │     │   引用文字...    │
+│   副标题/标语    │     │   ● ● ● ● ●     │     │                 │
+│                 │     │                 │     │      —— 出处     │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+   标题页                 内容页                 引言页
 
-| 类型 | 适用场景 |
-|------|---------|
-| 标题页 | 封面/结尾 |
-| 内容页 | 1 标题 + 4-6 要点 |
-| 功能网格 | 1 标题 + 最多 6 卡片 |
-| 代码页 | 1 标题 + 8-10 行代码 |
-| 引言页 | 1 条引言 + 归属 |
-| 图片页 | 1 标题 + 1 图片 |
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│      标题        │     │      标题        │     │   ┌───┬───┐    │
+│ ┌───┬───┬───┐  │     │   标题居中        │     │   │ ▲ │   │    │
+│ │ ● │ ● │ ● │  │     │                 │     │ ├───┼───┤    │
+│ ├───┼───┼───┤  │     │     1234        │     │   │   │   │    │
+│ │ ● │ ● │ ● │  │     │   (代码块)       │     │   └───┴───┘    │
+│ └───┴───┴───┘  │     │                 │     │      图片       │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+   功能网格               代码幻灯片             图片幻灯片
+```
 
-AI 自动分配，用户可调整。
-
-#### Step C：参考图输入（可选）
+#### Step 2：参考图输入（可选）
 
 跳过预设布局，通过参考图生成自定义 Skeleton。
 
-##### C1-Step 1：触发
+##### 2-Step 1：触发
 
 **用 AskUserQuestion：**
 
 ```javascript
-{ header: "布局", options: ["继续使用预设布局 → 进入 Step D", "上传参考图 → 执行 C1-Step 2"], multiSelect: false }
+{ header: "布局", options: ["继续使用预设布局 → 进入 Step 3", "上传参考图 → 执行 2-Step 2"], multiSelect: false }
 ```
 
-如果选"继续使用预设布局"，跳过 Step C 进入 Step D。
+如果选"继续使用预设布局"，跳过 Step 2 进入 Step 3。
 
-##### C1-Step 2：接收参考图
+##### 2-Step 2：接收参考图
 
 支持：拖入图片 / 本地路径 / URL
 
-##### C1-Step 3：图像分析
+##### 2-Step 3：图像分析
 
 使用 `mcp__MiniMax__understand_image` 分析：
 
@@ -219,7 +235,7 @@ AI 自动分配，用户可调整。
 
 失败时告知原因并引导重新上传。
 
-##### C1-Step 4：生成 Skeleton
+##### 2-Step 4：生成 Skeleton
 
 - 沿用阶段 2 已选风格的颜色字体基调
 - 使用灰色带圆角的占位块：`skeleton-img`、`skeleton-line`、`skeleton-card`
@@ -227,24 +243,24 @@ AI 自动分配，用户可调整。
 
 保存到 `previews/{name}-skeleton.html`，打开预览。
 
-##### C1-Step 5：Skeleton 调整
+##### 2-Step 5：Skeleton 调整
 
 **用 AskUserQuestion：**
 
 ```javascript
-{ header: "Skeleton", options: ["看起来不错 → 进入 Step D", "需要调整 → 描述哪里需要调整"], multiSelect: false }
+{ header: "Skeleton", options: ["看起来不错 → 进入 Step 3", "需要调整 → 描述哪里需要调整"], multiSelect: false }
 ```
 
 用户描述调整内容 → AI 修改 → 重新展示 → 重复直到满意。
 
-##### C1-Step 6：可视化精确调整（可选）
+##### 2-Step 6：可视化精确调整（可选）
 
 如果用户对自动调整不满意，可以直接在浏览器中拖拽元素进行精确调整（无需 Pencil）。
 
 **用 AskUserQuestion：**
 
 ```javascript
-{ header: "微调", options: ["直接在浏览器中拖拽调整（推荐）", "跳过，直接进入 Step D"], multiSelect: false }
+{ header: "微调", options: ["直接在浏览器中拖拽调整（推荐）", "跳过，直接进入 Step 3"], multiSelect: false }
 ```
 
 选择"直接在浏览器中拖拽调整"时，生成的 Skeleton HTML 包含 `SkeletonEditor` 工具栏：
@@ -265,15 +281,15 @@ if (document.querySelector(".skeleton-editor-toolbar")) {
 }
 ```
 
-##### C1-Step 7：确认完成
+##### 2-Step 7：确认完成
 
 **用 AskUserQuestion：**
 
 ```javascript
-{ header: "确认", options: ["完成 → 进入 Step D", "继续调整"], multiSelect: false }
+{ header: "确认", options: ["完成 → 进入 Step 3", "继续调整"], multiSelect: false }
 ```
 
-#### Step D：填充 + 应用风格
+#### Step 3：填充 + 应用风格
 
 **实时预览**：完成一张幻灯片后打开预览，输出进度。
 
@@ -285,8 +301,8 @@ if (document.querySelector(".skeleton-editor-toolbar")) {
   options: [
     "重新生成第X页",
     "调整风格",
-    "调整内容 → 返回 Step A",
-    "调整布局 → 返回 Step B",
+    "调整内容 → 返回 Step 1",
+    "调整布局 → 返回 Step 1",
     "满意，交付"
   ],
   multiSelect: false
